@@ -22,10 +22,10 @@ def mailscript(send_from,send_to,subject,text,files=[]):
 	try:
 		for f in files:
 			part = MIMEBase('application', "octet-stream")
-	        part.set_payload( open(f,"rb").read() )
-	        Encoders.encode_base64(part)
-	        part.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(f))
-	        msg.attach(part)
+			part.set_payload( open(f,"rb").read() )
+			Encoders.encode_base64(part)
+			part.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(f))
+			msg.attach(part)
 	        
 	except:
 		print 'There was some error in attaching the attachments.'
@@ -39,7 +39,7 @@ def checkpath(p):
 	comm="if [ -f "+p+" ];\nthen\necho '1'\nelse\necho '0'\nfi"
 	return int(os.popen(comm).read())
 
-def takea():		#right now only takes one attachment
+def takea():
 	l=[]
 	y=raw_input('Do you want to attach something ? (y/n) ')
 	while y=='y':
