@@ -9,7 +9,6 @@ and the sender's account should be gmail.
 In the further versions you can expect memoisation of :
 * user accounts
 * recipents
-* attach more than one 
 
 list will be further updated .
 
