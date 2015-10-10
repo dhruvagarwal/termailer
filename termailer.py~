@@ -77,7 +77,7 @@ def send_mail(username, password, recipients, subject, body, attachments):
         msg.attach(part)
     
     print 'Establishing connection ...'
-    server = smtplib.SMTP_SSL('smtp.gmail.com')
+    server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
     # Identify ourselves to the SMTP Gmail client
     server.ehlo()
     # If we can encrypt this session, do it
