@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import os
 import smtplib
-from getpass import getpass,getuser
+from getpass import getpass
 from tempfile import NamedTemporaryFile
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEBase import MIMEBase
