@@ -13,6 +13,7 @@ from email import Encoders
 smtp_url = {
 'gmail':'smtp.gmail.com',
 'outlook':'smtp-mail.outlook.com',
+'hotmail':'smtp-mail.outlook.com',
 'live':'smtp-mail.outlook.com',
 'yahoo':'smtp.mail.yahoo.com',
 'icloud':'smtp.mail.me.com',
