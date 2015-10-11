@@ -2,6 +2,8 @@
 import os
 import smtplib
 #import pprint
+from Tkinter import Tk
+from tkFileDialog import askopenfilename
 from getpass import getpass
 from tempfile import NamedTemporaryFile
 from email.MIMEMultipart import MIMEMultipart
@@ -61,9 +63,11 @@ def get_body():
 def get_attachments():
     attachments = []
     
-    print 'Enter the paths of the attachment files, one per line-:\n(Enter a blank line to finish!)'
+    print 'Select the attachment files, one per line-:\n(Choose cancel to finish!)'
+    Tk().withdraw()
     while True:
-        attachment = raw_input()
+        attachment = askopenfilename()        
+        #attachment = raw_input()
         if not attachment:
             break
         attachments.append(attachment)
@@ -141,7 +145,10 @@ def main():
         recipients = get_recipients()
         subject = raw_input('Subject: ')
         body = get_body()
-        attachments = get_attachments()
+        attachments = []
+        add_attach = raw_input("Want to add attachments? (Y/n)")
+        if add_attach == 'y' or add_attach == 'y':
+            attachments = get_attachments()
               
         send_mail(username, password, recipients, subject, body, attachments)
         print 'Mail sent!!'
