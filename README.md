@@ -3,6 +3,7 @@ Termailer
 
 **Description**  
 A Python script to send email from terminal directly.  
+
 Currently available for:
 - Gmail
 - Yahoo
@@ -12,6 +13,8 @@ Currently available for:
 - AOL
 - Zoho
 - iCloud
+
+
 
 In the further versions you can expect memoisation of :
 * user accounts
