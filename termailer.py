@@ -10,10 +10,16 @@ from email.MIMEText import MIMEText
 from email.Utils import COMMASPACE, formatdate
 from email import Encoders
 
-smtp_url = {'gmail':'smtp.gmail.com',
+smtp_url = {
+'gmail':'smtp.gmail.com',
 'outlook':'smtp-mail.outlook.com',
 'live':'smtp-mail.outlook.com',
-'yahoo':'smtp.mail.yahoo.com'}
+'yahoo':'smtp.mail.yahoo.com',
+'icloud':'smtp.mail.me.com',
+'aol':'smtp.aol.com',
+'yandex':'smtp.yandex.com',
+'zoho':'smtp.zoho.com',
+}
 
 
 def get_recipients():
