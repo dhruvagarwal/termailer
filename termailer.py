@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import os
 import smtplib
-import pprint
+#import pprint
 from getpass import getpass
 from tempfile import NamedTemporaryFile
 from email.MIMEMultipart import MIMEMultipart
@@ -11,8 +11,8 @@ from email.Utils import COMMASPACE, formatdate
 from email import Encoders
 
 smtp_url = {'gmail':'smtp.gmail.com',
-#'outlook':'smtp-mail.outlook.com',
-#'live':'smtp-mail.outlook.com',
+'outlook':'smtp-mail.outlook.com',
+'live':'smtp-mail.outlook.com',
 'yahoo':'smtp.mail.yahoo.com'}
 
 
@@ -119,9 +119,10 @@ def get_username():
             break
         else:
             print 'Invalid username! Enter one of the following -'
-            pp = pprint.PrettyPrinter(indent = 4)
-            pp.pprint(smtp_url.keys())
-            
+            #pp = pprint.PrettyPrinter(indent = 4)
+            #pp.pprint(smtp_url.keys())
+            print smtp_url.keys()
+
     return usr
 
 
