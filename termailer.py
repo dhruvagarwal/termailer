@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import os
 import smtplib
+import pprint
 from getpass import getpass
 from tempfile import NamedTemporaryFile
 from email.MIMEMultipart import MIMEMultipart
@@ -8,6 +9,12 @@ from email.MIMEBase import MIMEBase
 from email.MIMEText import MIMEText
 from email.Utils import COMMASPACE, formatdate
 from email import Encoders
+
+smtp_url = {'gmail':'smtp.gmail.com',
+#'outlook':'smtp-mail.outlook.com',
+#'live':'smtp-mail.outlook.com',
+'yahoo':'smtp.mail.yahoo.com'}
+
 
 def get_recipients():
     recipients = []
@@ -78,7 +85,11 @@ def send_mail(username, password, recipients, subject, body, attachments):
         msg.attach(part)
     
     print 'Establishing connection ...'
-    server = smtplib.SMTP_SSL('smtp.gmail.com')
+    
+    # Get the smtp server domain name
+    sender = username[username.find('@')+1:username.find('.')]
+	
+    server = smtplib.SMTP(smtp_url[sender],587)
     # Identify ourselves to the SMTP Gmail client
     server.ehlo()
     # If we can encrypt this session, do it
@@ -98,9 +109,26 @@ def send_mail(username, password, recipients, subject, body, attachments):
     server.quit()
 
 
+
+def get_username():
+    while True:
+        usr = raw_input('Username: ')
+        domain = usr[usr.find('@')+1:usr.find('.')]
+
+        if smtp_url.get(domain):
+            break
+        else:
+            print 'Invalid username! Enter one of the following -'
+            pp = pprint.PrettyPrinter(indent = 4)
+            pp.pprint(smtp_url.keys())
+            
+    return usr
+
+
+
 def main():
     try:
-        username = raw_input('Username: ')
+        username = get_username()
         password = getpass()
         recipients = get_recipients()
         subject = raw_input('Subject: ')
