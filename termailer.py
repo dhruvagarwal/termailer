@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import os
+import subprocess
 import smtplib
-#import pprint
 from Tkinter import Tk
 from tkFileDialog import askopenfilename
 from getpass import getpass
@@ -12,7 +12,8 @@ from email.MIMEText import MIMEText
 from email.Utils import COMMASPACE, formatdate
 from email import Encoders
 
-smtp_url = {
+
+email_provider_address = {
 'gmail':'smtp.gmail.com',
 'outlook':'smtp-mail.outlook.com',
 'hotmail':'smtp-mail.outlook.com',
@@ -23,6 +24,30 @@ smtp_url = {
 'yandex':'smtp.yandex.com',
 'zoho':'smtp.zoho.com',
 }
+
+
+# Parse the domain part from an email address
+def get_domain(email):
+
+    i = len(email) - 1    
+    while i >= 0 and email[i] != '@':
+        i -= 1
+    
+    j = i + 1
+    while j < len(email) and email[j] != '.':
+        j += 1
+    
+    return email[i+1:j]
+
+# Makes sure that the domain is supported
+# Raises an exception if it isn't
+def check_domain(domain):
+    if not domain in email_provider_address:
+        error_message = "Unknown domain name - '" + domain + "'.\n"
+        error_message += "Following email providers are supported -:\n"
+        for email_provider in email_provider_address:
+            error_message += email_provider + "\n"
+        raise Exception(error_message)
 
 
 def get_recipients():
@@ -46,8 +71,21 @@ def get_body():
     body_buffer_file_path = body_buffer_file.name
     body_buffer_file.close()
     
+    # Set the default editor
+    if os.name is 'nt':
+        editor = 'notepad'
+    elif os.name is 'posix':
+        editor = 'nano'
+    
     raw_input('Press Enter to start writing the body of the mail')
-    os.system('nano ' + body_buffer_file_path)
+    try:
+        subprocess.call([editor, body_buffer_file_path])
+    except OSError:
+        # No suitable text editor found
+        # Let the user edit the buffer file himself
+        print "Enter the mail body in the file located at '" + body_buffer_file_path + "'"
+        raw_input("Press Enter when done!") 
+    
     body_buffer_file = open(body_buffer_file_path)
     body = body_buffer_file.read()
     body_buffer_file.close()
@@ -55,6 +93,8 @@ def get_body():
         os.remove(body_buffer_file_path)
     except:
         # Unable to remove the temporary file
+        # Stop the exception from propogating further,
+        # since removing it is not essential to the working of the program
         pass
     
     return body
@@ -63,11 +103,10 @@ def get_body():
 def get_attachments():
     attachments = []
     
-    print 'Select the attachment files, one per line-:\n(Choose cancel to finish!)'
+    print 'Select the attachment files.\n(Press cancel to finish!)'
     Tk().withdraw()
     while True:
-        attachment = askopenfilename()        
-        #attachment = raw_input()
+        attachment = askopenfilename()
         if not attachment:
             break
         attachments.append(attachment)
@@ -75,12 +114,12 @@ def get_attachments():
     return attachments
 
 
-def send_mail(username, password, recipients, subject, body, attachments):
+def send_mail(email, email_provider_addr, password, recipients, subject, body, attachments):
     if not recipients:
         raise Exception("Please add atleast one recipient!")
     
     msg = MIMEMultipart()
-    msg['From'] = username
+    msg['From'] = email
     msg['To'] = COMMASPACE.join(recipients)
     msg['Date'] = formatdate(localtime = True)
     msg['Subject'] = subject
@@ -96,12 +135,8 @@ def send_mail(username, password, recipients, subject, body, attachments):
         msg.attach(part)
     
     print 'Establishing connection ...'
-    
-    # Get the smtp server domain name
-    sender = username[username.find('@')+1:username.find('.')]
-	
-    server = smtplib.SMTP(smtp_url[sender],587)
-    # Identify ourselves to the SMTP Gmail client
+    server = smtplib.SMTP(email_provider_addr, 587)
+    # Identify ourselves to the SMTP client
     server.ehlo()
     # If we can encrypt this session, do it
     if server.has_extn('STARTTLS'):
@@ -111,46 +146,27 @@ def send_mail(username, password, recipients, subject, body, attachments):
         server.ehlo()
     
     print 'Authorizing ...'
-    server.login(username, password)
+    server.login(email, password)
     
     print 'Sending mail ...'
-    server.sendmail(username, recipients, msg.as_string())
+    server.sendmail(email, recipients, msg.as_string())
     
     print 'Closing connection ...'
     server.quit()
 
 
-
-def get_username():
-    while True:
-        usr = raw_input('Username: ')
-        domain = usr[usr.find('@')+1:usr.find('.')]
-
-        if smtp_url.get(domain):
-            break
-        else:
-            print 'Invalid username! Enter one of the following -'
-            #pp = pprint.PrettyPrinter(indent = 4)
-            #pp.pprint(smtp_url.keys())
-            print smtp_url.keys()
-
-    return usr
-
-
-
 def main():
     try:
-        username = get_username()
+        email = raw_input('Email address: ')
+        email_domain = get_domain(email)
+        check_domain(email_domain)
         password = getpass()
         recipients = get_recipients()
         subject = raw_input('Subject: ')
         body = get_body()
-        attachments = []
-        add_attach = raw_input("Want to add attachments? (Y/n)")
-        if add_attach == 'y' or add_attach == 'y':
-            attachments = get_attachments()
+        attachments = get_attachments()
               
-        send_mail(username, password, recipients, subject, body, attachments)
+        send_mail(email, email_provider_address[email_domain], password, recipients, subject, body, attachments)
         print 'Mail sent!!'
     except BaseException as exception:
         error_message = exception.message
