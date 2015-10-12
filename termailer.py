@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 import os
 import subprocess
 import smtplib
@@ -72,10 +72,9 @@ def get_body():
     body_buffer_file.close()
     
     # Set the default editor
+    editor = 'nano'
     if os.name is 'nt':
         editor = 'notepad'
-    elif os.name is 'posix':
-        editor = 'nano'
     
     raw_input('Press Enter to start writing the body of the mail')
     try:
