@@ -1,81 +1,64 @@
 #!/usr/bin/python2
+from getpass import getpass
+from Tkinter import Tk
+from tkFileDialog import askopenfilename
+from tempfile import NamedTemporaryFile
 import os
 import subprocess
 import smtplib
-from Tkinter import Tk
-from tkFileDialog import askopenfilename
-from getpass import getpass
-from tempfile import NamedTemporaryFile
+import re
+
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEBase import MIMEBase
 from email.MIMEText import MIMEText
 from email.Utils import COMMASPACE, formatdate
 from email import Encoders
 
-
-email_provider_address = {
-'gmail':'smtp.gmail.com',
-'outlook':'smtp-mail.outlook.com',
-'hotmail':'smtp-mail.outlook.com',
-'live':'smtp-mail.outlook.com',
-'yahoo':'smtp.mail.yahoo.com',
-'icloud':'smtp.mail.me.com',
-'aol':'smtp.aol.com',
-'yandex':'smtp.yandex.com',
-'zoho':'smtp.zoho.com',
-}
+from termailer.settings import SMTP_CLIENT_FOR_DOMAIN
+from termailer.exceptions import IncorrectEmailException
 
 
-# Parse the domain part from an email address
-def get_domain(email):
+def get_domain(email_address):
+    regex = r"\w(?:\.|\_|\w)*@(\w+)\.\w(?:\w|\.|\_)*"
+    if re.match(regex, email_address):
+        domain_name = re.split(regex, email_address)[1]
+        return domain_name
 
-    i = len(email) - 1    
-    while i >= 0 and email[i] != '@':
-        i -= 1
-    
-    j = i + 1
-    while j < len(email) and email[j] != '.':
-        j += 1
-    
-    return email[i+1:j]
+    raise IncorrectEmailException
 
-# Makes sure that the domain is supported
-# Raises an exception if it isn't
+
 def check_domain(domain):
-    if not domain in email_provider_address:
-        error_message = "Unknown domain name - '" + domain + "'.\n"
-        error_message += "Following email providers are supported -:\n"
-        for email_provider in email_provider_address:
-            error_message += email_provider + "\n"
-        raise Exception(error_message)
+    """Check suuport for given domain."""
+    if domain in SMTP_CLIENT_FOR_DOMAIN:
+        return True
+
+    error_message = "Unknown domain name - '" + domain + "'.\n"
+    error_message += """Following email providers are supported-:
+                    {domain_list}""".format(domain_list='\n'.join([key for
+                                                key in SMTP_CLIENT_FOR_DOMAIN]))
+
+    raise Exception(error_message)
 
 
 def get_recipients():
-    recipients = []
-    
-    print 'Enter the list of recipients, one per line-:\n(Enter a blank line to finish!)'
-    while True:
-        recipient = raw_input()
-        if not recipient:
-            break
-        recipients.append(recipient)
-    
-    return recipients
+    print 'Enter list of recipents separated by comma(,)'
+    recipents = map(lambda x: x.strip(), raw_input().strip().split(','))
+    return recipents
 
 
 def get_body():
     body = ""
-    
+
     # Create a temporary file
-    body_buffer_file = NamedTemporaryFile(delete = False)
+    body_buffer_file = NamedTemporaryFile(delete=False)
     body_buffer_file_path = body_buffer_file.name
     body_buffer_file.close()
-    
+
     # Set the default editor
     editor = 'nano'
     if os.name is 'nt':
         editor = 'notepad'
-    
+
     raw_input('Press Enter to start writing the body of the mail')
     try:
         subprocess.call([editor, body_buffer_file_path])
@@ -83,8 +66,8 @@ def get_body():
         # No suitable text editor found
         # Let the user edit the buffer file himself
         print "Enter the mail body in the file located at '" + body_buffer_file_path + "'"
-        raw_input("Press Enter when done!") 
-    
+        raw_input("Press Enter when done!")
+
     body_buffer_file = open(body_buffer_file_path)
     body = body_buffer_file.read()
     body_buffer_file.close()
@@ -95,13 +78,13 @@ def get_body():
         # Stop the exception from propogating further,
         # since removing it is not essential to the working of the program
         pass
-    
+
     return body
 
 
 def get_attachments():
     attachments = []
-    
+
     print 'Select the attachment files.\n(Press cancel to finish!)'
     Tk().withdraw()
     while True:
@@ -109,22 +92,22 @@ def get_attachments():
         if not attachment:
             break
         attachments.append(attachment)
-    
+
     return attachments
 
 
 def send_mail(email, email_provider_addr, password, recipients, subject, body, attachments):
     if not recipients:
         raise Exception("Please add atleast one recipient!")
-    
+
     msg = MIMEMultipart()
     msg['From'] = email
     msg['To'] = COMMASPACE.join(recipients)
-    msg['Date'] = formatdate(localtime = True)
+    msg['Date'] = formatdate(localtime=True)
     msg['Subject'] = subject
     print "Attaching body ..."
     msg.attach(MIMEText(body))
-    
+
     for attachment in attachments:
         print "Attaching - '" + attachment + "' ..."
         part = MIMEBase('application', "octet-stream")
@@ -132,7 +115,7 @@ def send_mail(email, email_provider_addr, password, recipients, subject, body, a
         Encoders.encode_base64(part)
         part.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(attachment))
         msg.attach(part)
-    
+
     print 'Establishing connection ...'
     server = smtplib.SMTP(email_provider_addr, 587)
     # Identify ourselves to the SMTP client
@@ -143,13 +126,13 @@ def send_mail(email, email_provider_addr, password, recipients, subject, body, a
         server.starttls()
         # Re-identify ourselves over the TLS connection
         server.ehlo()
-    
+
     print 'Authorizing ...'
     server.login(email, password)
-    
+
     print 'Sending mail ...'
     server.sendmail(email, recipients, msg.as_string())
-    
+
     print 'Closing connection ...'
     server.quit()
 
@@ -164,9 +147,11 @@ def main():
         subject = raw_input('Subject: ')
         body = get_body()
         attachments = get_attachments()
-              
-        send_mail(email, email_provider_address[email_domain], password, recipients, subject, body, attachments)
+
+        send_mail(email, SMTP_CLIENT_FOR_DOMAIN[email_domain],
+                password, recipients, subject, body, attachments)
         print 'Mail sent!!'
+
     except BaseException as exception:
         error_message = exception.message
         if not error_message:

@@ -15,6 +15,8 @@ Email-providers supported:
 - Zoho
 - iCloud
 
+    *NOTE*:If you use any other domain, you can just add it to the settings.py
+            file
 **FAQ**
  - *Why am I getting a 534 error code with Gmail?*  
  This is so because Gmail prevents authorization by so called "less secure apps" by default.  
