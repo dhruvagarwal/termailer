@@ -17,6 +17,10 @@ Email-providers supported:
 
     *NOTE*: If you use any other domain, you can just add it to the settings.py file.
 
+**How to Use ?**
+Locate yourself in parent directory of this project.(Or add it in your path)
+
+    python -m termailer.termailer
 
 **FAQ**
  - *Why am I getting a 534 error code with Gmail?*
