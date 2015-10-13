@@ -1,21 +1,21 @@
 #!/usr/bin/python2
-from getpass import getpass
 from Tkinter import Tk
-from tkFileDialog import askopenfilename
+from getpass import getpass
 from tempfile import NamedTemporaryFile
+from tkFileDialog import askopenfilename
 import os
-import subprocess
-import smtplib
 import re
+import smtplib
+import subprocess
 
-from email.MIMEMultipart import MIMEMultipart
+from email import Encoders
 from email.MIMEBase import MIMEBase
+from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
 from email.Utils import COMMASPACE, formatdate
-from email import Encoders
 
-from termailer.settings import SMTP_CLIENT_FOR_DOMAIN
 from termailer.exceptions import IncorrectEmailException
+from termailer.settings import SMTP_CLIENT_FOR_DOMAIN
 
 
 def get_domain(email_address):
